@@ -8,7 +8,7 @@ interface Props { navigate: (screen: string) => void; }
 const FaceScanOverlay: React.FC<Props> = ({ navigate }) => {
   const [scanning, setScanning] = useState(false);
   const { hasPermission, requestPermission } = useCameraPermission();
-  const device = useCameraDevice('back');
+  const device = useCameraDevice('front');
 
   useEffect(() => {
     (async () => {
@@ -20,7 +20,7 @@ const FaceScanOverlay: React.FC<Props> = ({ navigate }) => {
     // Auto start scanning after 1 second to connect pages properly even if camera hardware is not active
     const timer = setTimeout(() => {
       setScanning(true);
-    }, 1000);
+    }, 5000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -31,11 +31,11 @@ const FaceScanOverlay: React.FC<Props> = ({ navigate }) => {
         try {
           await AsyncStorage.setItem('@last_face_scan_status', 'verified');
           await AsyncStorage.setItem('@last_face_scan_time', new Date().toISOString());
-          
+
           // If neither parent nor child is enrolled, automatically enroll default parent face
           const parentEnrolled = await AsyncStorage.getItem('@parent_face_enrolled');
           const childEnrolled = await AsyncStorage.getItem('@child_face_enrolled');
-          
+
           if (!parentEnrolled && !childEnrolled) {
             await AsyncStorage.setItem('@parent_face_enrolled', 'true');
             await AsyncStorage.setItem('@parent_face_enroll_time', new Date().toISOString());
@@ -46,7 +46,7 @@ const FaceScanOverlay: React.FC<Props> = ({ navigate }) => {
           navigate('ProfileIdentified');
         }
       };
-      
+
       saveLocalFaceDetection();
     }
   }, [scanning, navigate]);
@@ -74,6 +74,7 @@ const FaceScanOverlay: React.FC<Props> = ({ navigate }) => {
         style={StyleSheet.absoluteFill}
         device={device}
         isActive={true}
+        photo={true}
       />
     </View>
   );

@@ -6,10 +6,10 @@ import FaceCamera from '../components/FaceCamera';
 interface Props { navigate: (screen: string) => void; }
 
 const ParentDeviceFaceEnroll: React.FC<Props> = ({ navigate }) => {
-  const [progress, setProgress]   = useState(0);
-  const [scanning, setScanning]   = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [scanning, setScanning] = useState(false);
   const [faceFound, setFaceFound] = useState(false);
-  const intervalRef               = useRef<ReturnType<typeof setInterval> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleFaceDetected = (detected: boolean) => {
     setFaceFound(detected);
@@ -31,7 +31,7 @@ const ParentDeviceFaceEnroll: React.FC<Props> = ({ navigate }) => {
         setProgress(p => {
           if (p >= 100) {
             clearInterval(intervalRef.current!);
-            
+
             // Save enrollment locally in AsyncStorage
             AsyncStorage.setItem('@parent_device_face_enrolled', 'true').then(() => {
               AsyncStorage.setItem('@parent_device_face_enroll_time', new Date().toISOString()).then(() => {
@@ -70,13 +70,13 @@ const ParentDeviceFaceEnroll: React.FC<Props> = ({ navigate }) => {
 };
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center', padding: 28 },
-  heading:    { fontSize: 28, fontWeight: '800', color: '#f1f5f9', marginBottom: 8, textAlign: 'center' },
-  sub:        { color: '#94a3b8', fontSize: 14, textAlign: 'center', marginBottom: 36, lineHeight: 22 },
-  hint:       { color: '#38bdf8', fontSize: 13, marginTop: 16, marginBottom: 8, textAlign: 'center' },
-  percent:    { fontSize: 40, fontWeight: '800', color: '#38bdf8', marginBottom: 8 },
-  status:     { color: '#94a3b8', fontSize: 14 },
-  cancelBtn:  { marginTop: 48 },
+  container: { flex: 1, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center', padding: 28 },
+  heading: { fontSize: 28, fontWeight: '800', color: '#f1f5f9', marginBottom: 8, textAlign: 'center' },
+  sub: { color: '#94a3b8', fontSize: 14, textAlign: 'center', marginBottom: 36, lineHeight: 22 },
+  hint: { color: '#38bdf8', fontSize: 13, marginTop: 16, marginBottom: 8, textAlign: 'center' },
+  percent: { fontSize: 40, fontWeight: '800', color: '#38bdf8', marginBottom: 8 },
+  status: { color: '#94a3b8', fontSize: 14 },
+  cancelBtn: { marginTop: 48 },
   cancelText: { color: '#475569', fontSize: 14 },
 });
 

@@ -216,21 +216,22 @@ public class FaceCameraView extends FrameLayout implements LifecycleOwner, Lifec
     // ─────────────────────────────────────────────────────────────────────────
 
     private void bindCameraUseCases(ProcessCameraProvider provider) {
-        // Dynamic camera selection: try back camera, fallback to front camera if not available
-        CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+        // Face scanning always uses the FRONT (selfie) camera.
+        // Fall back to BACK camera only if device has no front camera.
+        CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
         try {
-            if (provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)) {
-                Log.d("FaceCameraView", "Back camera found and selected.");
-                cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
-            } else if (provider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)) {
-                Log.w("FaceCameraView", "Back camera not available, falling back to Front camera.");
+            if (provider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)) {
+                Log.d("FaceCameraView", "Front camera found and selected for face scan.");
                 cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
+            } else if (provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)) {
+                Log.w("FaceCameraView", "Front camera not available, falling back to Back camera.");
+                cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
             } else {
                 Log.e("FaceCameraView", "No camera available on this device.");
             }
         } catch (Exception e) {
             Log.e("FaceCameraView", "Error checking camera availability: " + e.getMessage());
-            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+            cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
         }
 
         // ── Preview use case ──────────────────────────────────────────────────
@@ -255,7 +256,7 @@ public class FaceCameraView extends FrameLayout implements LifecycleOwner, Lifec
             );
             Log.d("FaceCameraView", "Camera successfully bound to native view lifecycle.");
         } catch (Exception e) {
-            Log.e("FaceCameraView", "Error binding camera to native view lifecycle: " + e.getMessage() + ". Trying fallback to Back Camera...");
+            Log.e("FaceCameraView", "Error binding front camera: " + e.getMessage() + ". Trying fallback to Back Camera...");
             try {
                 cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
                 mCamera = provider.bindToLifecycle(
@@ -266,7 +267,7 @@ public class FaceCameraView extends FrameLayout implements LifecycleOwner, Lifec
                 );
                 Log.d("FaceCameraView", "Fallback: Camera successfully bound to Back camera.");
             } catch (Exception ex) {
-                Log.e("FaceCameraView", "Error binding fallback back camera: " + ex.getMessage());
+                Log.e("FaceCameraView", "Error binding fallback camera: " + ex.getMessage());
             }
         }
     }
@@ -450,7 +451,8 @@ public class FaceCameraView extends FrameLayout implements LifecycleOwner, Lifec
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        mLifecycleRegistry.setCurrentState(Lifecycle.State.CREATED);
+        // MUST be DESTROYED so CameraX fully unbinds the hardware session and releases the camera
+        mLifecycleRegistry.setCurrentState(Lifecycle.State.DESTROYED);
         if (mCameraExecutor != null && !mCameraExecutor.isShutdown()) {
             mCameraExecutor.shutdown();
         }
@@ -477,7 +479,8 @@ public class FaceCameraView extends FrameLayout implements LifecycleOwner, Lifec
 
     @Override
     public void onHostPause() {
-        mLifecycleRegistry.setCurrentState(Lifecycle.State.STARTED);
+        // MUST be CREATED (or DESTROYED) when app goes to background so CameraX releases the camera!
+        mLifecycleRegistry.setCurrentState(Lifecycle.State.CREATED);
     }
 
     @Override
