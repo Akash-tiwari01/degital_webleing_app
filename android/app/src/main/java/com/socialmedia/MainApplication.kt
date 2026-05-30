@@ -14,8 +14,9 @@ class MainApplication : Application(), ReactApplication {
       context = applicationContext,
       packageList =
         PackageList(this).packages.apply {
-          // Packages that cannot be autolinked yet can be added manually here, for example:
-          // add(MyReactNativePackage())
+          // Register Java-based face detection native view package
+          add(FaceCameraPackage())
+          add(DigitalWellbeingPackage())
         },
     )
   }
